@@ -66,3 +66,15 @@ variable "log_retention_days" {
     error_message = "Log retention days must be a valid CloudWatch retention period."
   }
 }
+
+variable "create_templates" {
+  type        = bool
+  description = "Create template files (bootstrap, handler, Makefile) in template_dir"
+  default     = false
+}
+
+variable "template_dir" {
+  type        = string
+  description = "Directory to create template files in"
+  default     = "./src"
+}
