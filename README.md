@@ -14,11 +14,15 @@ Terraform module that creates a Lambda function with zip packaging, IAM executio
 
 ## Usage
 
+### Basic Usage with Template Generation
+
 ```hcl
 module "lambda_function" {
   source = "git::https://github.com/ql4b/terraform-aws-lambda-function.git"
   
-  source_dir = "./src"
+  source_dir       = "./src"
+  create_templates = true
+  template_dir     = "./src"
   
   context = {
     namespace = "myorg"
@@ -27,18 +31,23 @@ module "lambda_function" {
 }
 ```
 
+This will automatically create `bootstrap`, `handler.sh`, and `Makefile` in your `./src` directory.
+
 ## Advanced Usage
 
 ```hcl
 module "lambda_function" {
   source = "git::https://github.com/ql4b/terraform-aws-lambda-function.git"
   
-  source_dir    = "./src"
-  handler       = "bootstrap"
-  runtime       = "provided.al2023"
-  architecture  = "arm64"
-  memory_size   = 256
-  timeout       = 30
+  source_dir         = "./src"
+  create_templates   = true
+  template_dir       = "./src"
+  
+  handler            = "bootstrap"
+  runtime            = "provided.al2023"
+  architecture       = "arm64"
+  memory_size        = 256
+  timeout            = 30
   
   environment_variables = {
     HANDLER = "/var/task/handler.sh"
@@ -55,12 +64,21 @@ module "lambda_function" {
 }
 ```
 
-## Source Directory Structure
+## Template Generation
+
+Set `create_templates = true` to automatically generate starter files:
+
+- `bootstrap` - Lambda runtime bootstrap (executable)
+- `handler.sh` - Example function handler
+- `Makefile` - Deployment and testing commands
+
+### Generated Directory Structure
 
 ```
 src/
 ├── bootstrap      # Lambda runtime bootstrap (executable)
-└── handler.sh     # Your function code
+├── handler.sh     # Your function code
+└── Makefile       # Deployment commands
 ```
 
 ## Example Bootstrap
@@ -111,11 +129,20 @@ terraform init
 terraform apply
 ```
 
-### 2. Use the Included Makefile
-
-The module includes a `Makefile` for simple deployment workflows:
+### 2. Set Function Name
 
 ```bash
+export FUNCTION_NAME=$(terraform output -raw function_name)
+```
+
+### 3. Use the Generated Makefile
+
+When `create_templates = true`, a `Makefile` is generated with deployment workflows:
+
+```bash
+# Set function name
+export FUNCTION_NAME=$(terraform output -raw function_name)
+
 # Deploy function code
 make deploy
 
@@ -132,7 +159,7 @@ make clean
 make help
 ```
 
-### 3. Manual Deployment (Alternative)
+### 4. Manual Deployment (Alternative)
 
 ```bash
 # Package and deploy manually
@@ -159,6 +186,7 @@ cat /tmp/response.json
 - `function_arn` - Lambda function ARN
 - `execution_role_arn` - IAM execution role ARN
 - `log_group_name` - CloudWatch log group name
+- `template_files` - Paths to generated template files (when `create_templates = true`)
 
 ## Integration with Lambda Layers
 

@@ -71,3 +71,13 @@ output "package_size" {
   description = "Size of the Lambda deployment package"
   value       = data.archive_file.lambda_zip.output_size
 }
+
+# Template outputs
+output "template_files" {
+  description = "Paths to created template files"
+  value = var.create_templates ? {
+    bootstrap = "${var.template_dir}/bootstrap"
+    handler   = "${var.template_dir}/handler.sh"
+    makefile  = "${var.template_dir}/Makefile"
+  } : {}
+}

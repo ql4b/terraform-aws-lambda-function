@@ -1,9 +1,11 @@
-# Get function name from Terraform output
-FUNCTION_NAME := $(shell terraform output -raw function_name)
+# Function name from environment variable
+FUNCTION_NAME := $(or $(FUNCTION_NAME),$(error FUNCTION_NAME environment variable not set))
 
 # Default target
 .PHONY: help
 help:
+	@echo "Usage: export FUNCTION_NAME=your-function-name"
+	@echo ""
 	@echo "Available targets:"
 	@echo "  deploy    - Package and deploy function code"
 	@echo "  invoke    - Test function invocation"

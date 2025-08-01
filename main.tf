@@ -2,6 +2,29 @@ locals {
   source_dir = var.source_dir
 }
 
+# Template files for user reference
+resource "local_file" "bootstrap_template" {
+  count    = var.create_templates ? 1 : 0
+  filename = "${var.template_dir}/bootstrap"
+  content  = file("${path.module}/src/bootstrap")
+  file_permission = "0755"
+}
+
+resource "local_file" "handler_template" {
+  count    = var.create_templates ? 1 : 0
+  filename = "${var.template_dir}/handler.sh"
+  content  = file("${path.module}/src/handler.sh")
+  file_permission = "0755"
+}
+
+resource "local_file" "makefile_template" {
+  count    = var.create_templates ? 1 : 0
+  filename = "${var.template_dir}/Makefile"
+  content  = templatefile("${path.module}/Makefile", {
+    function_name = module.this.id
+  })
+}
+
 # Create zip package from source directory
 data "archive_file" "lambda_zip" {
   type        = "zip"
