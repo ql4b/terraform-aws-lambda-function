@@ -1,0 +1,15 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+*.tfplan
+
+# Lambda deployment artifacts
+function.zip
+/tmp/response.json
+
+# OS
+.DS_Store
+Thumbs.db
