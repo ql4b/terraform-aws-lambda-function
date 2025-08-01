@@ -81,3 +81,13 @@ output "template_files" {
     makefile  = "${var.template_dir}/Makefile"
   } : {}
 }
+
+# SSM parameter outputs
+output "ssm_parameters" {
+  description = "SSM parameter names for Serverless integration"
+  value = {
+    function_name = aws_ssm_parameter.function_name.name
+    function_arn  = aws_ssm_parameter.function_arn.name
+    invoke_arn    = aws_ssm_parameter.invoke_arn.name
+  }
+}

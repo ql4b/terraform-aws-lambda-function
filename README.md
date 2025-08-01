@@ -17,21 +17,21 @@ Terraform module that creates a Lambda function with zip packaging, IAM executio
 ### Basic Usage with Template Generation
 
 ```hcl
-module "lambda_function" {
+module "lambda" {
   source = "git::https://github.com/ql4b/terraform-aws-lambda-function.git"
   
-  source_dir       = "./src"
+  source_dir       = "../app/src"
+  template_dir     = "../app/src"
   create_templates = true
-  template_dir     = "./src"
   
-  context = {
-    namespace = "myorg"
-    name      = "myfunction"
-  }
+  context    = module.label.context
+  attributes = ["lambda"]
 }
 ```
 
-This will automatically create `bootstrap`, `handler.sh`, and `Makefile` in your `./src` directory.
+This will automatically create `bootstrap`, `handler.sh`, and `Makefile` in your `../app/src` directory.
+
+**Note:** This module integrates seamlessly with any existing Terraform setup. The example above shows integration with CloudPosse labeling, but you can use it standalone or with any naming convention.
 
 ## Advanced Usage
 
@@ -61,6 +61,24 @@ module "lambda_function" {
     name      = "myfunction"
     stage     = "prod"
   }
+}
+```
+
+## Integration with Existing Projects
+
+This module is designed to plug into any existing Terraform setup:
+
+```hcl
+# Add to your existing main.tf
+module "my_function" {
+  source = "git::https://github.com/ql4b/terraform-aws-lambda-function.git"
+  
+  source_dir       = "./lambda-src"
+  create_templates = true
+  template_dir     = "./lambda-src"
+  
+  # Use your existing naming/tagging strategy
+  context = var.context  # or however you handle naming
 }
 ```
 
@@ -132,7 +150,11 @@ terraform apply
 ### 2. Set Function Name
 
 ```bash
+# If using the module directly
 export FUNCTION_NAME=$(terraform output -raw function_name)
+
+# If using as a nested module (like in cloudless-minimal)
+export FUNCTION_NAME=$(tf output --json lambda | jq -r .function_name)
 ```
 
 ### 3. Use the Generated Makefile
@@ -140,8 +162,11 @@ export FUNCTION_NAME=$(terraform output -raw function_name)
 When `create_templates = true`, a `Makefile` is generated with deployment workflows:
 
 ```bash
-# Set function name
-export FUNCTION_NAME=$(terraform output -raw function_name)
+# Set function name (adjust based on your output structure)
+export FUNCTION_NAME=$(tf output --json lambda | jq -r .function_name)
+
+# Navigate to your source directory
+cd app/src
 
 # Deploy function code
 make deploy

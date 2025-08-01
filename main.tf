@@ -100,3 +100,28 @@ resource "aws_lambda_function" "this" {
   
   tags = module.this.tags
 }
+
+# SSM parameters for Serverless integration
+resource "aws_ssm_parameter" "function_name" {
+  name  = "/${module.this.id}/function_name"
+  type  = "String"
+  value = aws_lambda_function.this.function_name
+  
+  tags = module.this.tags
+}
+
+resource "aws_ssm_parameter" "function_arn" {
+  name  = "/${module.this.id}/function_arn"
+  type  = "String"
+  value = aws_lambda_function.this.arn
+  
+  tags = module.this.tags
+}
+
+resource "aws_ssm_parameter" "invoke_arn" {
+  name  = "/${module.this.id}/invoke_arn"
+  type  = "String"
+  value = aws_lambda_function.this.invoke_arn
+  
+  tags = module.this.tags
+}
