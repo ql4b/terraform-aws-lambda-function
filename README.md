@@ -129,11 +129,20 @@ terraform init
 terraform apply
 ```
 
-### 2. Use the Generated Makefile
+### 2. Set Function Name
+
+```bash
+export FUNCTION_NAME=$(terraform output -raw function_name)
+```
+
+### 3. Use the Generated Makefile
 
 When `create_templates = true`, a `Makefile` is generated with deployment workflows:
 
 ```bash
+# Set function name
+export FUNCTION_NAME=$(terraform output -raw function_name)
+
 # Deploy function code
 make deploy
 
@@ -150,7 +159,7 @@ make clean
 make help
 ```
 
-### 3. Manual Deployment (Alternative)
+### 4. Manual Deployment (Alternative)
 
 ```bash
 # Package and deploy manually
