@@ -16,7 +16,7 @@ help:
 .PHONY: deploy
 deploy:
 	@echo "Packaging function..."
-	cd src && zip -r ../function.zip *
+	zip -r function.zip bootstrap handler.sh
 	@echo "Deploying to $(FUNCTION_NAME)..."
 	aws lambda update-function-code \
 		--function-name $(FUNCTION_NAME) \
@@ -30,6 +30,7 @@ invoke:
 	aws lambda invoke \
 		--function-name $(FUNCTION_NAME) \
 		--payload '{"test": "data"}' \
+		--cli-binary-format raw-in-base64-out \
 		/tmp/response.json
 	@echo "Response:"
 	@cat /tmp/response.json

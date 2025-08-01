@@ -30,6 +30,12 @@ data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = local.source_dir
   output_path = "${path.module}/.terraform/tmp/${module.this.id}.zip"
+  
+  depends_on = [
+    local_file.bootstrap_template,
+    local_file.handler_template,
+    local_file.makefile_template
+  ]
 }
 
 # IAM role for Lambda execution
