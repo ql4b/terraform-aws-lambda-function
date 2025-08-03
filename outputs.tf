@@ -61,15 +61,15 @@ output "log_group_arn" {
   value       = aws_cloudwatch_log_group.lambda_logs.arn
 }
 
-# Package outputs
+# Package outputs (Zip only)
 output "package_path" {
   description = "Path to the Lambda deployment package"
-  value       = data.archive_file.lambda_zip.output_path
+  value       = var.package_type == "Zip" ? data.archive_file.lambda_zip[0].output_path : null
 }
 
 output "package_size" {
   description = "Size of the Lambda deployment package"
-  value       = data.archive_file.lambda_zip.output_size
+  value       = var.package_type == "Zip" ? data.archive_file.lambda_zip[0].output_size : null
 }
 
 # Template outputs
