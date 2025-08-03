@@ -78,3 +78,30 @@ variable "template_dir" {
   description = "Directory to create template files in"
   default     = "./src"
 }
+
+variable "package_type" {
+  type        = string
+  description = "Lambda deployment package type"
+  default     = "Zip"
+  
+  validation {
+    condition     = contains(["Zip", "Image"], var.package_type)
+    error_message = "Package type must be either Zip or Image."
+  }
+}
+
+variable "image_uri" {
+  type        = string
+  description = "ECR image URI for container image deployment"
+  default     = null
+}
+
+variable "image_config" {
+  type = object({
+    entry_point = optional(list(string))
+    command     = optional(list(string))
+    working_directory = optional(string)
+  })
+  description = "Container image configuration"
+  default     = null
+}

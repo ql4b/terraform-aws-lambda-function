@@ -26,7 +26,22 @@ resource "local_file" "makefile_template" {
 }
 
 # Create zip package from source directory
+# data "archive_file" "lambda_zip" {
+#   type        = "zip"
+#   source_dir  = local.source_dir
+#   output_path = "${path.module}/.terraform/tmp/${module.this.id}.zip"
+  
+#   depends_on = [
+#     local_file.bootstrap_template,
+#     local_file.handler_template,
+#     local_file.makefile_template
+#   ]
+# }
+
+# Create zip package from source directory (only for Zip package type)
 data "archive_file" "lambda_zip" {
+  count = var.package_type == "Zip" ? 1 : 0
+  
   type        = "zip"
   source_dir  = local.source_dir
   output_path = "${path.module}/.terraform/tmp/${module.this.id}.zip"
@@ -37,6 +52,7 @@ data "archive_file" "lambda_zip" {
     local_file.makefile_template
   ]
 }
+
 
 # IAM role for Lambda execution
 resource "aws_iam_role" "lambda_execution" {
@@ -73,18 +89,62 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
 }
 
 # Lambda function
+# resource "aws_lambda_function" "this" {
+#   function_name = module.this.id
+#   role         = aws_iam_role.lambda_execution.arn
+  
+#   filename         = data.archive_file.lambda_zip.output_path
+#   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  
+#   handler        = var.handler
+#   runtime        = var.runtime
+#   architectures  = [var.architecture]
+#   memory_size    = var.memory_size
+#   timeout        = var.timeout
+  
+#   dynamic "environment" {
+#     for_each = length(var.environment_variables) > 0 ? [1] : []
+#     content {
+#       variables = var.environment_variables
+#     }
+#   }
+  
+#   depends_on = [
+#     aws_iam_role_policy_attachment.lambda_basic_execution,
+#     aws_cloudwatch_log_group.lambda_logs,
+#   ]
+  
+#   tags = module.this.tags
+# }
+
+# Lambda function
 resource "aws_lambda_function" "this" {
   function_name = module.this.id
   role         = aws_iam_role.lambda_execution.arn
   
-  filename         = data.archive_file.lambda_zip.output_path
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  package_type = var.package_type
   
-  handler        = var.handler
-  runtime        = var.runtime
-  architectures  = [var.architecture]
-  memory_size    = var.memory_size
-  timeout        = var.timeout
+  # Zip package configuration
+  filename         = var.package_type == "Zip" ? data.archive_file.lambda_zip[0].output_path : null
+  source_code_hash = var.package_type == "Zip" ? data.archive_file.lambda_zip[0].output_base64sha256 : null
+  handler          = var.package_type == "Zip" ? var.handler : null
+  runtime          = var.package_type == "Zip" ? var.runtime : null
+  
+  # Container image configuration
+  image_uri = var.package_type == "Image" ? var.image_uri : null
+  
+  dynamic "image_config" {
+    for_each = var.package_type == "Image" && var.image_config != null ? [var.image_config] : []
+    content {
+      entry_point       = image_config.value.entry_point
+      command          = image_config.value.command
+      working_directory = image_config.value.working_directory
+    }
+  }
+  
+  architectures = [var.architecture]
+  memory_size   = var.memory_size
+  timeout       = var.timeout
   
   dynamic "environment" {
     for_each = length(var.environment_variables) > 0 ? [1] : []
