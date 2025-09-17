@@ -1,6 +1,7 @@
 variable "source_dir" {
   type        = string
   description = "Path to the source directory containing Lambda function code"
+  default     = null
 }
 
 variable "handler" {
@@ -103,5 +104,11 @@ variable "image_config" {
     working_directory = optional(string)
   })
   description = "Container image configuration"
+  default     = null
+}
+
+variable "filename" {
+  type        = string
+  description = "Path to pre-built zip file (alternative to source_dir)"
   default     = null
 }

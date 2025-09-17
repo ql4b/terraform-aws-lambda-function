@@ -1,5 +1,6 @@
 locals {
   source_dir = var.source_dir
+  use_prebuilt_zip = var.filename != null
 }
 
 # Template files for user reference
@@ -38,9 +39,9 @@ resource "local_file" "makefile_template" {
 #   ]
 # }
 
-# Create zip package from source directory (only for Zip package type)
+# Create zip package from source directory (only for Zip package type and when not using prebuilt)
 data "archive_file" "lambda_zip" {
-  count = var.package_type == "Zip" ? 1 : 0
+  count = var.package_type == "Zip" && !local.use_prebuilt_zip ? 1 : 0
   
   type        = "zip"
   source_dir  = local.source_dir
@@ -125,8 +126,8 @@ resource "aws_lambda_function" "this" {
   package_type = var.package_type
   
   # Zip package configuration
-  filename         = var.package_type == "Zip" ? data.archive_file.lambda_zip[0].output_path : null
-  source_code_hash = var.package_type == "Zip" ? data.archive_file.lambda_zip[0].output_base64sha256 : null
+  filename         = var.package_type == "Zip" ? (local.use_prebuilt_zip ? var.filename : data.archive_file.lambda_zip[0].output_path) : null
+  source_code_hash = var.package_type == "Zip" ? (local.use_prebuilt_zip ? filebase64sha256(var.filename) : data.archive_file.lambda_zip[0].output_base64sha256) : null
   handler          = var.package_type == "Zip" ? var.handler : null
   runtime          = var.package_type == "Zip" ? var.runtime : null
   
