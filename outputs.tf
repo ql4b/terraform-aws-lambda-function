@@ -64,12 +64,12 @@ output "log_group_arn" {
 # Package outputs (Zip only)
 output "package_path" {
   description = "Path to the Lambda deployment package"
-  value       = var.package_type == "Zip" ? data.archive_file.lambda_zip[0].output_path : null
+  value       = var.package_type == "Zip" ? (local.use_prebuilt_zip ? var.filename : data.archive_file.lambda_zip[0].output_path) : null
 }
 
 output "package_size" {
   description = "Size of the Lambda deployment package"
-  value       = var.package_type == "Zip" ? data.archive_file.lambda_zip[0].output_size : null
+  value       = var.package_type == "Zip" ? (local.use_prebuilt_zip ? null : data.archive_file.lambda_zip[0].output_size) : null
 }
 
 # Template outputs
