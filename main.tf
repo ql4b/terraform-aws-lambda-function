@@ -127,7 +127,7 @@ resource "aws_lambda_function" "this" {
   
   # Zip package configuration
   filename         = var.package_type == "Zip" ? (local.use_prebuilt_zip ? var.filename : data.archive_file.lambda_zip[0].output_path) : null
-  source_code_hash = var.package_type == "Zip" ? (local.use_prebuilt_zip ? filebase64sha256(var.filename) : data.archive_file.lambda_zip[0].output_base64sha256) : null
+  source_code_hash = var.package_type == "Zip" ? (local.use_prebuilt_zip ? null : data.archive_file.lambda_zip[0].output_base64sha256) : null
   handler          = var.package_type == "Zip" ? var.handler : null
   runtime          = var.package_type == "Zip" ? var.runtime : null
   
