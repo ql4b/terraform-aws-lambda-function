@@ -3,41 +3,66 @@ locals {
   use_prebuilt_zip = var.filename != null
 }
 
-# Template files for user reference
-resource "local_file" "bootstrap_template" {
-  count    = var.create_templates ? 1 : 0
-  filename = "${var.template_dir}/bootstrap"
-  content  = file("${path.module}/src/bootstrap")
-  file_permission = "0755"
-}
-
-resource "local_file" "handler_template" {
-  count    = var.create_templates ? 1 : 0
-  filename = "${var.template_dir}/handler.sh"
-  content  = file("${path.module}/src/handler.sh")
-  file_permission = "0755"
-}
-
-resource "local_file" "makefile_template" {
-  count    = var.create_templates ? 1 : 0
-  filename = "${var.template_dir}/Makefile"
-  content  = templatefile("${path.module}/Makefile", {
-    function_name = module.this.id
-  })
-}
-
-# Create zip package from source directory
-# data "archive_file" "lambda_zip" {
-#   type        = "zip"
-#   source_dir  = local.source_dir
-#   output_path = "${path.module}/.terraform/tmp/${module.this.id}.zip"
+# Template files for user reference - only created if they don't exist
+resource "null_resource" "bootstrap_template" {
+  count = var.create_templates ? 1 : 0
   
-#   depends_on = [
-#     local_file.bootstrap_template,
-#     local_file.handler_template,
-#     local_file.makefile_template
-#   ]
-# }
+  triggers = {
+    template_dir = var.template_dir
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      if [ ! -f "${var.template_dir}/bootstrap" ]; then
+        mkdir -p "${var.template_dir}"
+        cat > "${var.template_dir}/bootstrap" << 'EOF'
+${file("${path.module}/src/bootstrap")}
+EOF
+        chmod 0755 "${var.template_dir}/bootstrap"
+      fi
+    EOT
+  }
+}
+
+resource "null_resource" "handler_template" {
+  count = var.create_templates ? 1 : 0
+  
+  triggers = {
+    template_dir = var.template_dir
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      if [ ! -f "${var.template_dir}/handler.sh" ]; then
+        mkdir -p "${var.template_dir}"
+        cat > "${var.template_dir}/handler.sh" << 'EOF'
+${file("${path.module}/src/handler.sh")}
+EOF
+        chmod 0755 "${var.template_dir}/handler.sh"
+      fi
+    EOT
+  }
+}
+
+resource "null_resource" "makefile_template" {
+  count = var.create_templates ? 1 : 0
+  
+  triggers = {
+    template_dir = var.template_dir
+    function_name = module.this.id
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      if [ ! -f "${var.template_dir}/Makefile" ]; then
+        mkdir -p "${var.template_dir}"
+        cat > "${var.template_dir}/Makefile" << 'EOF'
+${templatefile("${path.module}/Makefile", { function_name = module.this.id })}
+EOF
+      fi
+    EOT
+  }
+}
 
 # Create zip package from source directory (only for Zip package type and when not using prebuilt)
 data "archive_file" "lambda_zip" {
@@ -46,12 +71,6 @@ data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = local.source_dir
   output_path = "${path.module}/.terraform/tmp/${module.this.id}.zip"
-  
-  depends_on = [
-    local_file.bootstrap_template,
-    local_file.handler_template,
-    local_file.makefile_template
-  ]
 }
 
 
@@ -88,35 +107,6 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
   
   tags = module.this.tags
 }
-
-# Lambda function
-# resource "aws_lambda_function" "this" {
-#   function_name = module.this.id
-#   role         = aws_iam_role.lambda_execution.arn
-  
-#   filename         = data.archive_file.lambda_zip.output_path
-#   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
-  
-#   handler        = var.handler
-#   runtime        = var.runtime
-#   architectures  = [var.architecture]
-#   memory_size    = var.memory_size
-#   timeout        = var.timeout
-  
-#   dynamic "environment" {
-#     for_each = length(var.environment_variables) > 0 ? [1] : []
-#     content {
-#       variables = var.environment_variables
-#     }
-#   }
-  
-#   depends_on = [
-#     aws_iam_role_policy_attachment.lambda_basic_execution,
-#     aws_cloudwatch_log_group.lambda_logs,
-#   ]
-  
-#   tags = module.this.tags
-# }
 
 # Lambda function
 resource "aws_lambda_function" "this" {
