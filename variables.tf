@@ -112,3 +112,9 @@ variable "filename" {
   description = "Path to pre-built zip file (alternative to source_dir)"
   default     = null
 }
+
+variable "layers" {
+  type        = list(string)
+  description = "List of Lambda layer ARNs to attach to the function"
+  default     = []
+}
