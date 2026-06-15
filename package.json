@@ -1,5 +1,5 @@
 {
-  "name": "terraform-aws-analytics-pipeline",
+  "name": "terraform-aws-lambda-function",
   "private": true,
   "devDependencies": {
     "@semantic-release/github": "^11.0.6",
