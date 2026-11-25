@@ -106,6 +106,7 @@ module "lambda_function" {
 | architecture | Lambda function architecture | `string` | `"arm64"` | no |
 | memory_size | Memory in MB | `number` | `128` | no |
 | timeout | Timeout in seconds | `number` | `3` | no |
+| reserved_concurrent_executions | Reserved concurrency: max concurrent executions, set aside from the account limit. `null` or `-1` = unreserved | `number` | `null` | no |
 | environment_variables | Environment variables | `map(string)` | `{}` | no |
 
 ## Container Image Configuration
@@ -355,6 +356,7 @@ resource "aws_lambda_function" "with_layers" {
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | ID element. Usually an abbreviation of your organization name, e.g. 'eg' or 'cp', to help ensure generated IDs are globally unique | `string` | `null` | no |
 | <a name="input_package_type"></a> [package\_type](#input\_package\_type) | Lambda deployment package type | `string` | `"Zip"` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br/>Characters matching the regex will be removed from the ID elements.<br/>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
+| <a name="input_reserved_concurrent_executions"></a> [reserved\_concurrent\_executions](#input\_reserved\_concurrent\_executions) | Reserved concurrency for the function: the most concurrent executions it may use, and that many executions set aside from the account limit for it. null or -1 leaves it unreserved (it shares the account's unreserved pool); 0 throttles every invocation. | `number` | `null` | no |
 | <a name="input_runtime"></a> [runtime](#input\_runtime) | Lambda runtime | `string` | `"provided.al2023"` | no |
 | <a name="input_source_dir"></a> [source\_dir](#input\_source\_dir) | Path to the source directory containing Lambda function code | `string` | `null` | no |
 | <a name="input_stage"></a> [stage](#input\_stage) | ID element. Usually used to indicate role, e.g. 'prod', 'staging', 'source', 'build', 'test', 'deploy', 'release' | `string` | `null` | no |
