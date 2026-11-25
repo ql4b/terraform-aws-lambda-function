@@ -118,3 +118,14 @@ variable "layers" {
   description = "List of Lambda layer ARNs to attach to the function"
   default     = []
 }
+
+variable "reserved_concurrent_executions" {
+  type        = number
+  description = "Reserved concurrency for the function: the most concurrent executions it may use, and that many executions set aside from the account limit for it. null or -1 leaves it unreserved (it shares the account's unreserved pool); 0 throttles every invocation."
+  default     = null
+
+  validation {
+    condition     = var.reserved_concurrent_executions == null || var.reserved_concurrent_executions >= -1
+    error_message = "reserved_concurrent_executions must be null, -1 (unreserved), or a non-negative number."
+  }
+}
